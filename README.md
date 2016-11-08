@@ -88,6 +88,38 @@ channel.on('message', message => {
 });
 ```
 
+## Sending Messages Client->Server
+
+Set up a message handler on the server:
+
+```ruby
+require 'power_strip'
+
+# Handle :message events in the "chat" channel.
+# @param message [PowerStrip::Message] the message we received
+# @param connection [Faye::WebSocket] the client connection this is from
+PowerStrip.on :message, channel: 'chat' do |message, connection|
+  IncomingMessageWorker.perform_async message
+end
+```
+
+Notice we don't do work directly on the message. We instead pass it off to a background worker. This is so that we can handle as many incoming messages as possible. To be able to send messages back to that channel, we can simply use the Server->Client message command specified above. Note the `perform` method here:
+
+```ruby
+require 'sidekiq'
+require 'power_strip'
+
+class IncomingMessageWorker
+  include Sidekiq::Worker
+
+  # @param message [PowerStrip::Message]
+  def perform(message)
+    # Simplest case, we send the message back out to everyone on the same channel
+    PowerStrip[message.channel].send :message, message.data
+  end
+end
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
