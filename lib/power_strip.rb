@@ -34,7 +34,7 @@ end
 
 begin
   require 'opal'
-  Opal.append_path File.expand_path('../opal', __FILE__)
+  Opal.append_path File.expand_path('../../opal', __FILE__)
 rescue
   require 'sprockets'
   Sprockets.append_path File.expand_path('../js', __FILE__)
