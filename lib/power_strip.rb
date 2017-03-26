@@ -30,6 +30,12 @@ module PowerStrip
   def on event_name, channel:, &block
     app.on event_name, channel: channel, &block
   end
+
+  class Channel
+    def on message, &block
+      PowerStrip.on(message, channel: name, &block)
+    end
+  end
 end
 
 begin
