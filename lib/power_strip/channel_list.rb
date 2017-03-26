@@ -5,7 +5,11 @@ module PowerStrip
     def initialize(redis:)
       @redis = redis
       @channels = Hash.new do |hash, channel|
-        hash[channel.to_s] = Channel.new(channel, redis: redis)
+        hash[channel.to_s] = Channel.new(
+          channel,
+          channel_list: self,
+          redis: redis,
+        )
       end
     end
 
@@ -19,6 +23,10 @@ module PowerStrip
 
     def delete channel_name
       @channels.delete channel_name.to_s
+    end
+
+    def has_channel? channel_name
+      @channels.key? channel_name.to_s
     end
   end
 end

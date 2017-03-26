@@ -6,8 +6,9 @@ module PowerStrip
   class Channel
     attr_reader :name, :sockets
 
-    def initialize(name, redis:)
+    def initialize(name, channel_list: {}, redis:)
       @name = name
+      @channel_list = channel_list
       @redis = redis
       @sockets = Set.new
     end
@@ -18,6 +19,13 @@ module PowerStrip
 
     def delete socket
       @sockets.delete socket
+
+      # Tell the channel list to GC this channel
+      @channel_list.delete @name if empty?
+    end
+
+    def empty?
+      @sockets.empty?
     end
 
     def send event, message
