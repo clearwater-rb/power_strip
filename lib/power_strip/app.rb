@@ -26,6 +26,7 @@ module PowerStrip
       @connections = {}
     end
 
+    # omg I'm so sorry this method looks like this.
     def call env
       if Faye::WebSocket.websocket? env
         socket = Faye::WebSocket.new(env)
