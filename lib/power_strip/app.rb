@@ -5,6 +5,7 @@ require 'json'
 
 require 'power_strip/channel_list'
 require 'power_strip/message'
+require 'power_strip/connection'
 
 module PowerStrip
   class App
@@ -22,6 +23,7 @@ module PowerStrip
           handlers[event] = []
         end
       end
+      @connections = {}
     end
 
     def call env
@@ -31,46 +33,50 @@ module PowerStrip
         subscriptions = Set.new
 
         socket.on :message do |event|
-          message = Message.new(JSON.parse(event.data))
-          channel_name = message.channel
-          channel = channels[channel_name]
+          begin
+            message = Message.new(JSON.parse(event.data))
+            channel_name = message.channel
+            channel = channels[channel_name]
 
-          case message.event
-          when '@subscribe'
-            channel << socket
-            subscriptions << channel_name
+            case message.event
+            when '@subscribe'
+              channel << socket
+              subscriptions << channel
 
-            socket.send({
-              event: :subscribed,
-              channel: channel_name,
-            }.to_json)
-          when '@unsubscribe'
-            channels[channel_name].delete socket
-            if channels[channel_name].empty?
-              channels.delete channel_name
-            end
+              socket.send({
+                event: :subscribed,
+                channel: channel_name,
+              }.to_json)
+            when '@unsubscribe'
+              subscriptions.delete channel
+              channel.delete socket
 
-            subscriptions.delete channel_name
-
-            socket.send({
-              event: :unsubscribed,
-              channel: channel_name,
-            }.to_json)
-          else
-            @handlers[channel_name][message.event].each do |callback|
-              begin
-                callback[message, socket]
-              rescue => e
-                warn "[PowerStrip] #{e.inspect}"
+              socket.send({
+                event: :unsubscribed,
+                channel: channel_name,
+              }.to_json)
+            else
+              @handlers[channel_name][message.event].each do |callback|
+                begin
+                  callback[message, @connections[socket]]
+                rescue => e
+                  warn "[PowerStrip] #{e.inspect}"
+                end
               end
             end
+          rescue JSON::ParserError
+            # Ignore invalid JSON
           end
         end
 
+        socket.on :open do
+          @connections[socket] = Connection.new(socket)
+        end
+
         socket.on :close do
-          subscriptions.each do |channel_name|
-            channels[channel_name].delete socket
-          end
+          # Remove this connection from all channels it was subscribed to.
+          subscriptions.each { |channel| channel.delete socket }
+          @connections.delete socket
         end
 
         socket.rack_response
