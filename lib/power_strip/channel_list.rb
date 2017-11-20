@@ -28,5 +28,20 @@ module PowerStrip
     def has_channel? channel_name
       @channels.key? channel_name.to_s
     end
+
+    def inspect
+      longest_name = @channels.each_key.max_by(&:length).length
+
+      <<-EOF
+#<#{self.class.name}:0x#{(object_id * 2).to_s(16)}
+#{@channels.map { |name, channel| "  #{name.rjust(longest_name)}: #{channel.sockets.length}" }.join("\n") }>
+      EOF
+    end
+
+    def prune
+      @channels.reject! do |name, channel|
+        channel.empty?
+      end
+    end
   end
 end

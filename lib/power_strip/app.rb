@@ -45,24 +45,25 @@ module PowerStrip
               subscriptions << channel
 
               socket.send({
-                event: :subscribed,
                 channel: channel_name,
+                event: :subscribed,
               }.to_json)
             when '@unsubscribe'
               subscriptions.delete channel
               channel.delete socket
 
               socket.send({
-                event: :unsubscribed,
                 channel: channel_name,
+                event: :unsubscribed,
               }.to_json)
-            else
-              @handlers[channel_name][message.event].each do |callback|
-                begin
-                  callback[message, @connections[socket]]
-                rescue => e
-                  warn "[PowerStrip] #{e.inspect}"
-                end
+            end
+
+            @handlers[channel_name][message.event].each do |callback|
+              begin
+                callback[message, @connections[socket]]
+              rescue => e
+                warn "[PowerStrip] #{e.inspect}"
+                warn e.backtrace
               end
             end
           rescue JSON::ParserError
@@ -71,13 +72,29 @@ module PowerStrip
         end
 
         socket.on :open do
-          @connections[socket] = Connection.new(socket)
+          connection = Connection.new(socket)
+          @connections[socket] = connection
+          @handlers['meta'.freeze]['open'].each do |callback|
+            begin
+              callback[connection]
+            rescue => e
+              warn "[PowerStrip] #{e.inspect}"
+            end
+          end
         end
 
         socket.on :close do
           # Remove this connection from all channels it was subscribed to.
           subscriptions.each { |channel| channel.delete socket }
-          @connections.delete socket
+          connection = @connections.delete socket
+          channels.prune
+          @handlers['meta'.freeze]['close'].each do |callback|
+            begin
+              callback[connection]
+            rescue => e
+              warn "[PowerStrip] #{e.inspect}"
+            end
+          end
         end
 
         socket.rack_response
