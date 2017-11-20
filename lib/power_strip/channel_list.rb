@@ -2,6 +2,8 @@ require 'power_strip/channel'
 
 module PowerStrip
   class ChannelList
+    include Enumerable
+
     def initialize(redis:)
       @redis = redis
       @channels = Hash.new do |hash, channel|
@@ -15,6 +17,10 @@ module PowerStrip
 
     def [] name
       @channels[name.to_s]
+    end
+
+    def each
+      @channels.each_value { |channel| yield channel }
     end
 
     def to_a
