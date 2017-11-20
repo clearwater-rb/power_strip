@@ -20,7 +20,14 @@ module PowerStrip
 
   def start(**args)
     @app = App.instance(**args)
-    @thread = Thread.new { app.listen }
+    @thread = Thread.new do
+      begin
+        app.listen
+      rescue => e
+        warn "[PowerStrip Handler Thread] #{e}"
+        warn e.backtrace
+      end
+    end
   end
 
   def [] channel
