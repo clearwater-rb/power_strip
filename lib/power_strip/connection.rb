@@ -15,6 +15,15 @@ module PowerStrip
       @metadata[attribute] = value
     end
 
+    def send message
+      case message
+      when Message, Hash
+        @socket.send message.to_json
+      when String
+        @socket.send message
+      end
+    end
+
     def method_missing *args, &block
       @socket.public_send *args, &block
     end
