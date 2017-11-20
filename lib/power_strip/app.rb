@@ -90,6 +90,10 @@ module PowerStrip
       @handlers[channel.to_s][event.to_s] << block
     end
 
+    def close channel_name
+      @handlers.delete channel_name.to_s
+    end
+
     def listen
       redis.dup.subscribe(:power_strip) do |on|
         on.message do |_, message|

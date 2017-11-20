@@ -37,5 +37,9 @@ module PowerStrip
       @redis.publish :power_strip, message.to_json
       self
     end
+
+    def close
+      PowerStrip.close name
+    end
   end
 end
