@@ -34,11 +34,10 @@ module PowerStrip
     end
 
     def unsubscribe channel_name
-      channel = @subscriptions[channel_name]
+      channel = @subscriptions.delete(channel_name)
       return if channel.nil?
 
-      @subscriptions.delete channel
-      channel.unsubscribe
+      channel.unsubscribe if @socket.connected?
 
       channel
     end
