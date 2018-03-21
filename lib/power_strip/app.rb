@@ -60,7 +60,7 @@ module PowerStrip
 
             @handlers[channel_name][message.event].each do |callback|
               begin
-                callback[message, @connections[socket]]
+                callback[message.data, @connections[socket]]
               rescue => e
                 warn "[PowerStrip] #{e.inspect}"
                 warn e.backtrace

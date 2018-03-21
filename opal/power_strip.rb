@@ -95,7 +95,7 @@ module PowerStrip
 
     def receive_message message
       @handlers[message.event].each do |handler|
-        handler.call message
+        handler.call message.data
       end
     end
 
