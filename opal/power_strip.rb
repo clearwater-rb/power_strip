@@ -5,14 +5,20 @@ module PowerStrip
   class Client
     attr_reader :url
 
-    def initialize(url)
+    def initialize(url, auto_resubscribe: true)
       @url = url
       @socket = Bowser.websocket(url)
       @socket.autoreconnect!
       @subscriptions = {}
 
       @socket.on :open do
-        @subscriptions.each { |name, channel| channel.subscribe }
+        if auto_resubscribe
+          @subscriptions.each do |name, channel|
+            channel.subscribe
+          end
+        else
+          @subscriptions = {}
+        end
       end
       @socket.on :message do |event|
         message = Message.new(event.data)
