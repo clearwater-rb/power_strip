@@ -1,5 +1,5 @@
 require 'bowser/websocket'
-require 'promise'
+require 'bowser/promise'
 
 module PowerStrip
   class Client
@@ -63,7 +63,7 @@ module PowerStrip
     end
 
     def send_message channel=nil, event=nil, data=nil
-      promise = Promise.new
+      promise = Bowser::Promise.new
 
       if @socket.connected?
         @socket.send_message({ channel: channel, event: event, data: data }
@@ -78,7 +78,7 @@ module PowerStrip
 
       promise
     rescue => exception
-      promise.fail exception
+      promise.reject exception
     end
   end
 
