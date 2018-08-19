@@ -53,6 +53,9 @@ begin
   require 'opal'
   Opal.append_path File.expand_path('../../opal', __FILE__)
 rescue LoadError
-  require 'sprockets'
-  Sprockets.append_path File.expand_path('../js', __FILE__)
+  begin
+    require 'sprockets'
+    Sprockets.append_path File.expand_path('../js', __FILE__)
+  rescue LoadError
+  end
 end
