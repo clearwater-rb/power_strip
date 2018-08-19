@@ -80,6 +80,10 @@ module PowerStrip
     rescue => exception
       promise.reject exception
     end
+
+    def close
+      @socket.close
+    end
   end
 
   class Channel
