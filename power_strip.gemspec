@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "faye-websocket", "~> 0.10.4"
   spec.add_runtime_dependency "grand_central"
   spec.add_runtime_dependency "redis"
+  spec.add_runtime_dependency "bowser", "~> 1.0.2"
 
   spec.add_development_dependency "bundler", "~> 1.12"
   spec.add_development_dependency "rake", "~> 10.0"
